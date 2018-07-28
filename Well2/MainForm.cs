@@ -77,17 +77,7 @@ namespace well
                 }
                 wellsTree.ExpandAll();
 
-
-                //List<decimal> temp = new List<decimal>();
-                //temp = 
-
-                //MessageBox.Show(WellNew.WellData(filePath).Keys.First());
-
-                // MessageBox.Show(WellNew.WellData(filePath).Count.ToString());
-
-
-
-
+                //отрисовка графика
                 string сhartName = WellNew.WellName + Well.count;
                 Chart chartNew = new Chart();
                 chartNew.Parent = splitContainer1.Panel2;
@@ -98,32 +88,12 @@ namespace well
                 ser1.ChartArea = сhartName;
                 string depthCol = WellNew.WellData(filePath).Keys.First();
 
-                for (int i = 0; i < WellNew.WellData(filePath).Count; i++) //fix всего 6 значений
+                foreach (decimal depthValue in WellNew.WellData(filePath)[depthCol])
                 {
-                    foreach (decimal depthValue in WellNew.WellData(filePath)[depthCol])
-                    {
-                        int x = 0; decimal y = depthValue;
-                        ser1.Points.AddXY(x, y);
-                    }
-                 //   chartNew.Series.Add(ser1);
-                 //проверка репозитория
+                    int x = 0; decimal y = depthValue;
+                    ser1.Points.AddXY(x, y);
                 }
-
-                //for (double x = -Math.PI; x <= Math.PI; x += Math.PI / 10.0)
-                //{
-                //    ser1.Points.AddXY(x, Math.Sin(x));
-                //}
-                //chartNew.Series.Add(ser1);
-                //foreach (KeyValuePair<string, List<decimal>> pair in WellNew.WellData(filePath))
-                //{
-                //foreach (decimal val in pair.Value)
-                //{ s =/* s +*/ "key: " + pair.Key + "val= " + val + Environment.NewLine; }
-                //}
-                // MessageBox.Show(s);
-
-
-
-
+                chartNew.Series.Add(ser1);
             }
         }        
     }
