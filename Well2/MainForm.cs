@@ -106,6 +106,7 @@ namespace well
                         ser1.Points.AddXY(x, y);
                     }
                  //   chartNew.Series.Add(ser1);
+                 //проверка репозитория
                 }
 
                 //for (double x = -Math.PI; x <= Math.PI; x += Math.PI / 10.0)
