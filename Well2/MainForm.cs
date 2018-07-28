@@ -77,16 +77,24 @@ namespace well
                 }
                 wellsTree.ExpandAll();
 
-                //отрисовка графика
+                //отрисовка графика                
+                const float graphWidth = 45;
+                const float graphHeight = 100;
                 string сhartName = WellNew.WellName + Well.count;
-                Chart chartNew = new Chart();
-                chartNew.Parent = splitContainer1.Panel2;
-                // chartNew.Dock = DockStyle.Fill;
-                chartNew.ChartAreas.Add(new ChartArea(сhartName));
+                Chart chartNew = new Chart();                
+                
+
+                chartNew.Parent = tableLayoutPanel1;
+                chartNew.Dock = DockStyle.Fill;                
+                chartNew.ChartAreas.Add(new ChartArea(сhartName));                
+                chartNew.ChartAreas[0].AxisY.IsReversed = true;
                 Series ser1 = new Series(сhartName);
                 ser1.ChartType = SeriesChartType.Line;
+                ser1.XAxisType = AxisType.Secondary;                
                 ser1.ChartArea = сhartName;
-                string depthCol = WellNew.WellData(filePath).Keys.First();
+                chartNew.ChartAreas[0].Position.Width = graphWidth;
+                chartNew.ChartAreas[0].Position.Height = graphHeight;
+                string depthCol = WellNew.WellData(filePath).Keys.First();                
 
                 foreach (decimal depthValue in WellNew.WellData(filePath)[depthCol])
                 {
@@ -94,6 +102,24 @@ namespace well
                     ser1.Points.AddXY(x, y);
                 }
                 chartNew.Series.Add(ser1);
+
+                Series ser2 = new Series(сhartName + "test");
+                chartNew.ChartAreas.Add(new ChartArea(сhartName + "test"));
+                ser2.ChartType = SeriesChartType.Line;
+                ser2.XAxisType = AxisType.Secondary;
+                ser2.ChartArea = сhartName + "test";
+                chartNew.ChartAreas[1].AxisY.IsReversed = true;
+                chartNew.ChartAreas[1].Position.X = chartNew.ChartAreas[0].Position.Width;
+                chartNew.ChartAreas[1].Position.Y = chartNew.ChartAreas[0].Position.Y;
+                chartNew.ChartAreas[1].Position.Width = graphWidth;
+                chartNew.ChartAreas[1].Position.Height = graphHeight;
+
+                foreach (decimal depthValue in WellNew.WellData(filePath)[depthCol])
+                {
+                    int x = 0; decimal y = depthValue;
+                    ser2.Points.AddXY(x, y);
+                }
+                chartNew.Series.Add(ser2);
             }
         }        
     }
