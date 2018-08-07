@@ -325,6 +325,7 @@
             this.wellsTree.Name = "wellsTree";
             this.wellsTree.Size = new System.Drawing.Size(227, 426);
             this.wellsTree.TabIndex = 0;
+            this.wellsTree.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.wellsTree_NodeMouseClick);
             // 
             // openFileDialog1
             // 

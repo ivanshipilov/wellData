@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
@@ -15,10 +16,13 @@ namespace well
         {
             InitializeComponent();
 
+           
             //Load += MainForm_Load;
             //Panel p2 = splitContainer1.Panel2;
             //p2.Paint += new PaintEventHandler(Panel2Draw);
         }
+
+        
 
         //private void Panel2Draw(object sender, PaintEventArgs e)
         //{
@@ -36,20 +40,22 @@ namespace well
 
         //}
 
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            //Graphics g = Graphics.FromHwnd(Handle);
-            //Pen pen = new Pen(Brushes.Green, 20f);
-            //Point p1 = new Point(10,10);
-            //Point p2 = new Point(this.Width, this.Height);
-            //g.DrawLine(pen, p1, p2);
-        }
+        //protected override void OnPaint(PaintEventArgs e)
+        //{
+        //    Graphics g = Graphics.FromHwnd(Handle);
+        //    Pen pen = new Pen(Brushes.Green, 20f);
+        //    Point p1 = new Point(10, 10);
+        //    Point p2 = new Point(this.Width, this.Height);
+        //    g.DrawLine(pen, p1, p2);
+        //}
 
         //private void fileToolStripMenuItem_Click(object sender, EventArgs e)
         //{
 
         //}
 
+
+      
         // открытие нового файла из главного меню
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -77,12 +83,15 @@ namespace well
                 }
                 wellsTree.ExpandAll();
 
+                
+
                 //отрисовка графика                
                 TableLayoutPanel panel = new TableLayoutPanel();
                 panel.Parent = splitContainer1.Panel2;
                 panel.Dock = DockStyle.Fill;
                 panel.AutoScroll = true;
-                panel.AutoSize = true;
+                //panel.MaximumSize
+                //panel.AutoSize = true;
                 splitContainer1.Panel2.AutoScroll = true;
                 panel.RowCount = panel.RowCount + 1;
 
@@ -149,6 +158,11 @@ namespace well
                 }
                 
             }
-        }        
+        }
+
+        private void wellsTree_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            MessageBox.Show(e.Node.Text + " clicked " + e.Node.Checked);
+        }
     }
 }
