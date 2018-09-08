@@ -18,7 +18,6 @@ namespace well
         private string wellPath;
         public string WellName { get { return wellName; } }
         public string WellPath { get { return wellPath; } }        
-        //Dictionary<string, List<decimal>> methodsDict = new Dictionary<string, List<decimal>>();
         List<string> methodsList = new List<string>();
         Dictionary<string, List<decimal>> dataDict = new Dictionary<string, List<decimal>>();
 
@@ -30,12 +29,7 @@ namespace well
             GetWellMethodsFromFile(wellPath);
             GetWellDataFromFile(wellPath);
             Well.count++;
-        }
-
-        //public void Draw()
-        //{
-        //    Pen pen = new Pen(Brushes.Green);
-        //}
+        }       
 
         //parse well methods
         public void GetWellMethodsFromFile(string wellPath)
@@ -174,9 +168,9 @@ namespace well
         }
 
         //show well methods
-        public List<string> WellMethods(string wellPath)
+        public List<string> WellMethods()
         {
-            return methodsList;
+            return this.methodsList;
         }
 
         //show well data
