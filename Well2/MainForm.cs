@@ -26,8 +26,6 @@ namespace well
             panel.RowCount = panel.RowCount + 1;
         }
 
-        // создание List со скважинами в проекте  
-
         //создание tablePanel для последующего добавления в нее скважин
         TableLayoutPanel panel = new TableLayoutPanel();
         Controller controller = null;
@@ -60,7 +58,6 @@ namespace well
 
         private Chart CreateChart(string wellName, TableLayoutPanel panel)
         {
-            //Well well = controller.GetWell(wellName);
             int colCount = panel.ColumnCount -1;            
             Chart chartNew = new Chart();
             chartNew.Name = wellName;
@@ -78,13 +75,42 @@ namespace well
                 chartArea.Position.X = chart.ChartAreas.Last().Position.Right;                
             }
             chartArea.Position.Y = 0;
+            chartArea.Position.Width = 20;
+            chartArea.Position.Height = 100;
             chart.ChartAreas.Add(chartArea);
             return chartArea;
         }
+        private Series CreateSerie (string wellPath, string wellMethod, ChartArea chartArea)
+        {
+            Well well = controller.GetWell(wellPath);
+            Dictionary<string, List<decimal>> wellData = well.WellData();
+            string depthDataKey = wellData.First().Key;
+            List <decimal> methodData = wellData[wellMethod];
+            Series serie = new Series(chartArea.Name);
+            int i = 0;
+            foreach (decimal depthValue in wellData[depthDataKey])              
+            {
+                decimal x = methodData[i]; decimal y = depthValue;
+                serie.Points.AddXY(x, y);
+                i += 1;
+            }
+
+            return serie;
+        }
+        private void DrawGraph (Chart chart, ChartArea chartArea, Series serie)
+        {
+            serie.ChartType = SeriesChartType.Line;
+            serie.XAxisType = AxisType.Secondary;
+            serie.ChartArea = chartArea.Name;
+            chart.Series.Add(serie);
+        }
+
         //событе нажатие на узел в дереве скважин
         private void wellsTree_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
             Chart chart = null;
+            ChartArea chartArea = null;
+            Series serie = null;
             if (charts.ContainsKey(e.Node.Parent.Text))
             {
                 chart = charts[e.Node.Parent.Text];
@@ -94,43 +120,9 @@ namespace well
                 chart = CreateChart(e.Node.Parent.Text, panel);
                 charts.Add(e.Node.Parent.Text, chart);
             }
-            CreateChartArea(e.Node.Text, chart);
-            
-          
-
-
-           
-            
-            //    //Series ser = new Series(chartAreaName);
-            //    //ser.ChartType = SeriesChartType.Line;
-            //    //ser.XAxisType = AxisType.Secondary;
-            //    //ser.ChartArea = chartAreaName;
-
-            //    //try
-            //    //{
-            //    //    //chartNew.ChartAreas[i].Position.Auto = true;
-            //    //    chartNew.ChartAreas[i].Position.X = chartNew.ChartAreas[i - 1].Position.Right;
-            //    //    chartNew.ChartAreas[i].Position.Y = 0;
-            //    //}
-            //    //catch (Exception)
-            //    //{
-            //    //    //chartNew.ChartAreas[i].Position.Auto = true;
-            //    //    chartNew.ChartAreas[i].Position.X = 0;
-            //    //    chartNew.ChartAreas[i].Position.Y = 0;
-            //    //}
-            //    //chartNew.ChartAreas[i].Position.Width = 20;//panel.Width/countMethods;
-            //    //chartNew.ChartAreas[i].Position.Height = graphHeight;
-
-            //    //string depthCol = well.WellData(WellPath).Keys.First();                 //fix
-
-            //    //foreach (decimal depthValue in well.WellData(WellPath)[depthCol])    //fix
-            //    //{
-            //    //    int x = 0; decimal y = depthValue;
-            //    //    ser.Points.AddXY(x, y);
-            //    //}
-            //    //chartNew.Series.Add(ser);
-            //}
-
+            chartArea = CreateChartArea(e.Node.Text, chart);
+            serie = CreateSerie(e.Node.Parent.Name, e.Node.Text, chartArea);                        
+            DrawGraph(chart, chartArea, serie);
         }
         //проверка - выбран ли хоть 1 из методов скважины в дереве
         //private void checkCheckboxNodes(TreeNode ParentNode)

@@ -174,9 +174,9 @@ namespace well
         }
 
         //show well data
-        public Dictionary<string, List<decimal>> WellData(string wellPath)
+        public Dictionary<string, List<decimal>> WellData()
         {
-            return dataDict;
-        }
+            return this.dataDict;
+        }//убрал получение аргумента string wellPath
     }
 }
