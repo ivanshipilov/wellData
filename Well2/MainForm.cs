@@ -59,8 +59,8 @@ namespace well
         private Chart CreateChart(string wellName, TableLayoutPanel panel)
         {
             int colCount = panel.ColumnCount -1;            
-            Chart chartNew = new Chart();
-            chartNew.Name = wellName;
+            Chart chartNew = new Chart();            
+            chartNew.Name = wellName;            
             chartNew.Dock = DockStyle.Fill;
             panel.Controls.Add(chartNew, colCount, 0);
             panel.ColumnCount += 1;
@@ -73,7 +73,7 @@ namespace well
             if (chart.ChartAreas.Count != 0)
             {
                 chartArea.Position.X = chart.ChartAreas.Last().Position.Right;                
-            }
+            }            
             chartArea.Position.Y = 0;
             chartArea.Position.Width = 20;
             chartArea.Position.Height = 100;
@@ -90,17 +90,25 @@ namespace well
             int i = 0;
             foreach (decimal depthValue in wellData[depthDataKey])              
             {
-                decimal x = methodData[i]; decimal y = depthValue;
+                decimal y = methodData[i]; decimal x = depthValue;
                 serie.Points.AddXY(x, y);
                 i += 1;
             }
-
-            return serie;
+            DataManipulator filter = new DataManipulator();
+            filter.Filter(CompareMethod.EqualTo, -999.250, serie);
+            Series serie1 = new Series(chartArea.Name);
+            foreach (var item in serie.Points)
+            {
+                double y = item.XValue;
+                double x = item.YValues[0];
+                serie1.Points.AddXY(x, y);
+            }
+            return serie1;
         }
         private void DrawGraph (Chart chart, ChartArea chartArea, Series serie)
         {
             serie.ChartType = SeriesChartType.Line;
-            serie.XAxisType = AxisType.Secondary;
+            serie.XAxisType = AxisType.Secondary;            
             serie.ChartArea = chartArea.Name;
             chart.Series.Add(serie);
         }
