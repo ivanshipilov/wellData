@@ -8,6 +8,7 @@ using Well2;
 
 namespace well
 {
+    //как обратиться к chartArea (например для ее удаления)
 
     public partial class MainForm : Form
     {
@@ -23,14 +24,13 @@ namespace well
             wellsTree.ExpandAll();
 
             //создание новой ячейки tablePanel
-            panel.RowCount = panel.RowCount + 1;
+           // panel.RowCount = panel.RowCount + 1;
         }
 
         //создание tablePanel для последующего добавления в нее скважин
         TableLayoutPanel panel = new TableLayoutPanel();
         Controller controller = null;
         Dictionary <string, Chart> charts = new Dictionary <string, Chart>();
-
 
         public MainForm()
         {
@@ -61,13 +61,13 @@ namespace well
             int colCount = panel.ColumnCount -1;            
             Chart chartNew = new Chart();            
             chartNew.Name = wellName;            
-            chartNew.Dock = DockStyle.Fill;
+            chartNew.Dock = DockStyle.Fill;            
             panel.Controls.Add(chartNew, colCount, 0);
             panel.ColumnCount += 1;
             return chartNew;
         }
         private ChartArea CreateChartArea (string wellMethod, Chart chart)
-        {
+        {           
             ChartArea chartArea = new ChartArea(wellMethod);        
             chartArea.AxisY.IsReversed = true;
             if (chart.ChartAreas.Count != 0)
@@ -76,7 +76,7 @@ namespace well
             }            
             chartArea.Position.Y = 0;
             chartArea.Position.Width = 20;
-            chartArea.Position.Height = 100;
+            chartArea.Position.Height = 100;            
             chart.ChartAreas.Add(chartArea);
             return chartArea;
         }
@@ -88,15 +88,19 @@ namespace well
             List <decimal> methodData = wellData[wellMethod];
             Series serie = new Series(chartArea.Name);
             int i = 0;
+            //создается набор данных для чарта где глубина по X - т.к. фильтрация делается только по Y
             foreach (decimal depthValue in wellData[depthDataKey])              
             {
                 decimal y = methodData[i]; decimal x = depthValue;
                 serie.Points.AddXY(x, y);
                 i += 1;
             }
+            //фильтрация - fix! вынести в отдельный метод, значение передавать пока как параметр, в дальнейшем сделать для пользователя поле для ввода неактуального значения
+            //еще далее добавить аналогичную фильтрацию для значений >x <x
             DataManipulator filter = new DataManipulator();
             filter.Filter(CompareMethod.EqualTo, -999.250, serie);
             Series serie1 = new Series(chartArea.Name);
+            //меняются местами x и y для правильного отображения графиков
             foreach (var item in serie.Points)
             {
                 double y = item.XValue;
@@ -105,7 +109,8 @@ namespace well
             }
             return serie1;
         }
-        private void DrawGraph (Chart chart, ChartArea chartArea, Series serie)
+        //настройка и отрисовка графика в чарте
+        private void DrawGraphInChart (Chart chart, ChartArea chartArea, Series serie)
         {
             serie.ChartType = SeriesChartType.Line;
             serie.XAxisType = AxisType.Secondary;            
@@ -113,9 +118,21 @@ namespace well
             chart.Series.Add(serie);
         }
 
-        //событе нажатие на узел в дереве скважин
+        //событе нажатие на узел в дереве скважин       
         private void wellsTree_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
+            //если node делается unchecked:
+            if (e.Node.Checked == false)
+            {   
+                //удаляется набор данных serie для метода и charArea
+                charts[e.Node.Parent.Text].Series.RemoveAt(charts[e.Node.Parent.Text].ChartAreas.IndexOf(e.Node.Text));
+                charts[e.Node.Parent.Text].ChartAreas.RemoveAt(charts[e.Node.Parent.Text].ChartAreas.IndexOf(e.Node.Text));
+                return;
+            }            
+
+            SelectParents(e.Node, e.Node.Checked);            
+
+            //далее если node делается checked.. но как сделать красиво: эту процедуру отдельным методом, чтобы вызывать его из другого события? делегаты??
             Chart chart = null;
             ChartArea chartArea = null;
             Series serie = null;
@@ -130,7 +147,7 @@ namespace well
             }
             chartArea = CreateChartArea(e.Node.Text, chart);
             serie = CreateSerie(e.Node.Parent.Name, e.Node.Text, chartArea);                        
-            DrawGraph(chart, chartArea, serie);
+            DrawGraphInChart(chart, chartArea, serie);
         }
         //проверка - выбран ли хоть 1 из методов скважины в дереве
         //private void checkCheckboxNodes(TreeNode ParentNode)
@@ -156,47 +173,47 @@ namespace well
         //    }
         //}
 
-        private void wellsTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
-        {
+        //private void wellsTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
+        //{
             
-            //e.Node.Tag = e.Node.Checked;
-            //    if (!e.Node.Checked)
-            //    {
-            //        e.Node.Checked = true;                
-            //    }            
-            //    else
-            //    {
-            //        e.Node.Checked = false;
-            //    }
-            //    SelectTreeNode(e.Node);
-        }
+        //    //e.Node.Tag = e.Node.Checked;
+        //    //    if (!e.Node.Checked)
+        //    //    {
+        //    //        e.Node.Checked = true;                
+        //    //    }            
+        //    //    else
+        //    //    {
+        //    //        e.Node.Checked = false;
+        //    //    }
+        //    //    SelectTreeNode(e.Node);
+        //}
 
-        private bool check = false;
-        private void wellsTree_AfterCheck(object sender, TreeViewEventArgs e)
-        {  
-            if (check == true)
-            {
-                return;
-            }
-            check = true;
-            SelectParents(e.Node, e.Node.Checked);
-            check = false;
-            //if (e.Node.Tag != null)
-            //{
-            //    e.Node.Checked = (bool)e.Node.Tag;
-            //    e.Node.Tag = null;
-            //}
-            //MessageBox.Show(e.Node.Checked + "включен");
-            //if (!e.Node.Checked)
-            //{
-            //    e.Node.Checked = true;
-            //}
-            //else
-            //{
-            //    e.Node.Checked = false;
-            //}
-            //SelectTreeNode(e.Node);
-        }
+        //private bool check = false;
+        //private void wellsTree_AfterCheck(object sender, TreeViewEventArgs e)
+        //{  
+        //    if (check == true)
+        //    {
+        //        return;
+        //    }
+        //    check = true;
+        //    SelectParents(e.Node, e.Node.Checked);
+        //    check = false;
+        //    //if (e.Node.Tag != null)
+        //    //{
+        //    //    e.Node.Checked = (bool)e.Node.Tag;
+        //    //    e.Node.Tag = null;
+        //    //}
+        //    //MessageBox.Show(e.Node.Checked + "включен");
+        //    //if (!e.Node.Checked)
+        //    //{
+        //    //    e.Node.Checked = true;
+        //    //}
+        //    //else
+        //    //{
+        //    //    e.Node.Checked = false;
+        //    //}
+        //    //SelectTreeNode(e.Node);
+        //}
         private void SelectParents(TreeNode node, Boolean isChecked)
         {
             var parent = node.Parent;
@@ -218,29 +235,29 @@ namespace well
             }
         }
 
-        private void wellsTree_BeforeCheck(object sender, TreeViewCancelEventArgs e)
-        {
-            //MessageBox.Show(e.Node.Checked + "включен");
-            //if (!e.Node.Checked)
-            //{
-            //    e.Node.Checked = true;
-            //}
-            //else
-            //{
-            //    e.Node.Checked = false;
-            //}
-            //SelectTreeNode(e.Node);
-        }
+        //private void wellsTree_BeforeCheck(object sender, TreeViewCancelEventArgs e)
+        //{
+        //    //MessageBox.Show(e.Node.Checked + "включен");
+        //    //if (!e.Node.Checked)
+        //    //{
+        //    //    e.Node.Checked = true;
+        //    //}
+        //    //else
+        //    //{
+        //    //    e.Node.Checked = false;
+        //    //}
+        //    //SelectTreeNode(e.Node);
+        //}
 
-        private void wellsTree_DoubleClick(object sender, EventArgs e)
-        {
-            int a = 0;
-        }
+        //private void wellsTree_DoubleClick(object sender, EventArgs e)
+        //{
+        //    int a = 0;
+        //}
 
-        private void wellsTree_MouseDoubleClick(object sender, MouseEventArgs e)
-        {
-            int a = 0;
-        }
+        //private void wellsTree_MouseDoubleClick(object sender, MouseEventArgs e)
+        //{
+        //    int a = 0;
+        //}
     }
 
 }
