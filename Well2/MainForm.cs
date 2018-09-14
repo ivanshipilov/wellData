@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
@@ -8,8 +9,6 @@ using Well2;
 
 namespace well
 {
-    //как обратиться к chartArea (например для ее удаления)
-
     public partial class MainForm : Form
     {
         private void DrawTree(Well well)
@@ -22,12 +21,9 @@ namespace well
                 wellsTree.Nodes[Well.count - 1].Nodes.Add(method);
             }
             wellsTree.ExpandAll();
-
-            //создание новой ячейки tablePanel
-           // panel.RowCount = panel.RowCount + 1;
         }
 
-        //создание tablePanel для последующего добавления в нее скважин
+        public const string extension = ".las";
         TableLayoutPanel panel = new TableLayoutPanel();
         Controller controller = null;
         Dictionary <string, Chart> charts = new Dictionary <string, Chart>();
@@ -45,15 +41,19 @@ namespace well
         // открытие нового файла из главного меню
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // проверка, если нажата отмена
             if (openFileDialog1.ShowDialog() == DialogResult.Cancel)
                 return;
             else
             {
                 string filePath = openFileDialog1.FileName;
-                controller.AddWells(filePath);
-                DrawTree(controller.GetWell(filePath));
+                OpenFile(filePath);                
             }
+        }
+
+        private void OpenFile(string filePath)
+        {
+            controller.AddWells(filePath);
+            DrawTree(controller.GetWell(filePath));
         }
 
         private Chart CreateChart(string wellName, TableLayoutPanel panel)
@@ -74,9 +74,14 @@ namespace well
             {
                 chartArea.Position.X = chart.ChartAreas.Last().Position.Right;                
             }            
-            chartArea.Position.Y = 0;
+ 
             chartArea.Position.Width = 20;
-            chartArea.Position.Height = 100;            
+            chartArea.Position.Height = 100;
+            
+            //ну никак не получается сделать подпись над графиком((
+            chartArea.AxisY.Title = wellMethod;
+            chartArea.AxisY.LabelStyle.IntervalOffset = 0;
+
             chart.ChartAreas.Add(chartArea);
             return chartArea;
         }
@@ -106,7 +111,7 @@ namespace well
                 double y = item.XValue;
                 double x = item.YValues[0];
                 serie1.Points.AddXY(x, y);
-            }
+            }          
             return serie1;
         }
         //настройка и отрисовка графика в чарте
@@ -235,6 +240,7 @@ namespace well
             }
         }
 
+
         //private void wellsTree_BeforeCheck(object sender, TreeViewCancelEventArgs e)
         //{
         //    //MessageBox.Show(e.Node.Checked + "включен");
@@ -258,6 +264,41 @@ namespace well
         //{
         //    int a = 0;
         //}
+
+        private void wellsTree_DragEnter(object sender, DragEventArgs e)
+        {
+            //if (e.Data.GetDataPresent(DataFormats.FileDrop))                                          
+            //    e.Effect = DragDropEffects.Copy;
+            //else
+            //    e.Effect = DragDropEffects.None;            
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                // loop through the string array, validating each filename
+                bool allow = true;
+                foreach (string file in files)
+                {                                        
+                    if (Path.GetExtension(file).ToLower() != extension)
+                    {                       
+                        allow = false;
+                        break;
+                    }
+                }
+                e.Effect = (allow ? DragDropEffects.Copy : DragDropEffects.None);                
+            }
+        }
+
+        private void wellsTree_DragDrop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                string[] filePathes = (string[])e.Data.GetData(DataFormats.FileDrop);
+                foreach (string file in filePathes)
+                {
+                    OpenFile(file);
+                }
+            }
+        }
     }
 
 }

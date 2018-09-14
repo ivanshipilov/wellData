@@ -319,18 +319,16 @@
             // 
             // wellsTree
             // 
+            this.wellsTree.AllowDrop = true;
             this.wellsTree.CheckBoxes = true;
             this.wellsTree.Dock = System.Windows.Forms.DockStyle.Fill;
             this.wellsTree.Location = new System.Drawing.Point(0, 0);
             this.wellsTree.Name = "wellsTree";
             this.wellsTree.Size = new System.Drawing.Size(227, 426);
             this.wellsTree.TabIndex = 0;
-            //this.wellsTree.BeforeCheck += new System.Windows.Forms.TreeViewCancelEventHandler(this.wellsTree_BeforeCheck);
-            //this.wellsTree.AfterCheck += new System.Windows.Forms.TreeViewEventHandler(this.wellsTree_AfterCheck);
             this.wellsTree.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.wellsTree_NodeMouseClick);
-            //this.wellsTree.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.wellsTree_NodeMouseDoubleClick);
-            //this.wellsTree.DoubleClick += new System.EventHandler(this.wellsTree_DoubleClick);
-            //this.wellsTree.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.wellsTree_MouseDoubleClick);
+            this.wellsTree.DragDrop += new System.Windows.Forms.DragEventHandler(this.wellsTree_DragDrop);
+            this.wellsTree.DragEnter += new System.Windows.Forms.DragEventHandler(this.wellsTree_DragEnter);
             // 
             // openFileDialog1
             // 
