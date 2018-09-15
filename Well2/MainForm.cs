@@ -1,4 +1,9 @@
-﻿using System;
+﻿//ошибка при работе с несколькими скважинами
+//ошибка дерева
+//str 81 никак не получается сделать подпись над графиком(
+//str 107 - фильтрация
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -56,45 +61,82 @@ namespace well
             DrawTree(controller.GetWell(filePath));
         }
 
+        //событе нажатие на узел в дереве скважин       
+        private void wellsTree_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)            
+        {
+            string strWellname = e.Node.Parent.Name;
+            string strWell = e.Node.Parent.Text;
+            string strMethod = e.Node.Text;
+
+            //если node делается unchecked:
+            if (e.Node.Checked == false)
+            {   
+                //удаляется набор данных serie для метода и charArea
+                charts[strWell].Series.RemoveAt(charts[strWell].ChartAreas.IndexOf(strMethod));
+                charts[strWell].ChartAreas.RemoveAt(charts[strWell].ChartAreas.IndexOf(strMethod));
+                return;
+            }            
+            SelectParents(e.Node, e.Node.Checked);
+            addMethodToScreen(strWell, strWellname, strMethod);
+        }
+
+        private void addMethodToScreen (string strWell, string strWellName, string strMethod)
+        {
+            Chart chart = null;
+            ChartArea chartArea = null;
+            Series serie = null;
+            if (charts.ContainsKey(strWell))
+            {
+                chart = charts[strWell];
+            }
+            else
+            {
+                chart = CreateChart(strWell, panel);
+                charts.Add(strWell, chart);
+            }
+            chartArea = CreateChartArea(strMethod, chart);
+            serie = CreateSerie(strWellName, strMethod, chartArea);
+            DrawGraphInChart(chart, chartArea, serie);
+        }
+
         private Chart CreateChart(string wellName, TableLayoutPanel panel)
         {
-            int colCount = panel.ColumnCount -1;            
-            Chart chartNew = new Chart();            
-            chartNew.Name = wellName;            
-            chartNew.Dock = DockStyle.Fill;            
+            int colCount = panel.ColumnCount - 1;
+            Chart chartNew = new Chart();
+            chartNew.Name = wellName;
+            chartNew.Dock = DockStyle.Fill;
             panel.Controls.Add(chartNew, colCount, 0);
             panel.ColumnCount += 1;
             return chartNew;
         }
-        private ChartArea CreateChartArea (string wellMethod, Chart chart)
-        {           
-            ChartArea chartArea = new ChartArea(wellMethod);        
+        private ChartArea CreateChartArea(string wellMethod, Chart chart)
+        {
+            ChartArea chartArea = new ChartArea(wellMethod);
             chartArea.AxisY.IsReversed = true;
             if (chart.ChartAreas.Count != 0)
             {
-                chartArea.Position.X = chart.ChartAreas.Last().Position.Right;                
-            }            
- 
+                chartArea.Position.X = chart.ChartAreas.Last().Position.Right;
+            }
+
             chartArea.Position.Width = 20;
             chartArea.Position.Height = 100;
-            
-            //ну никак не получается сделать подпись над графиком((
+
             chartArea.AxisY.Title = wellMethod;
             chartArea.AxisY.LabelStyle.IntervalOffset = 0;
 
             chart.ChartAreas.Add(chartArea);
             return chartArea;
         }
-        private Series CreateSerie (string wellPath, string wellMethod, ChartArea chartArea)
+        private Series CreateSerie(string wellPath, string wellMethod, ChartArea chartArea)
         {
             Well well = controller.GetWell(wellPath);
             Dictionary<string, List<decimal>> wellData = well.WellData();
             string depthDataKey = wellData.First().Key;
-            List <decimal> methodData = wellData[wellMethod];
+            List<decimal> methodData = wellData[wellMethod];
             Series serie = new Series(chartArea.Name);
             int i = 0;
             //создается набор данных для чарта где глубина по X - т.к. фильтрация делается только по Y
-            foreach (decimal depthValue in wellData[depthDataKey])              
+            foreach (decimal depthValue in wellData[depthDataKey])
             {
                 decimal y = methodData[i]; decimal x = depthValue;
                 serie.Points.AddXY(x, y);
@@ -111,48 +153,16 @@ namespace well
                 double y = item.XValue;
                 double x = item.YValues[0];
                 serie1.Points.AddXY(x, y);
-            }          
+            }
             return serie1;
         }
         //настройка и отрисовка графика в чарте
-        private void DrawGraphInChart (Chart chart, ChartArea chartArea, Series serie)
+        private void DrawGraphInChart(Chart chart, ChartArea chartArea, Series serie)
         {
             serie.ChartType = SeriesChartType.Line;
-            serie.XAxisType = AxisType.Secondary;            
+            serie.XAxisType = AxisType.Secondary;
             serie.ChartArea = chartArea.Name;
             chart.Series.Add(serie);
-        }
-
-        //событе нажатие на узел в дереве скважин       
-        private void wellsTree_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
-        {
-            //если node делается unchecked:
-            if (e.Node.Checked == false)
-            {   
-                //удаляется набор данных serie для метода и charArea
-                charts[e.Node.Parent.Text].Series.RemoveAt(charts[e.Node.Parent.Text].ChartAreas.IndexOf(e.Node.Text));
-                charts[e.Node.Parent.Text].ChartAreas.RemoveAt(charts[e.Node.Parent.Text].ChartAreas.IndexOf(e.Node.Text));
-                return;
-            }            
-
-            SelectParents(e.Node, e.Node.Checked);            
-
-            //далее если node делается checked.. но как сделать красиво: эту процедуру отдельным методом, чтобы вызывать его из другого события? делегаты??
-            Chart chart = null;
-            ChartArea chartArea = null;
-            Series serie = null;
-            if (charts.ContainsKey(e.Node.Parent.Text))
-            {
-                chart = charts[e.Node.Parent.Text];
-            }
-            else
-            {
-                chart = CreateChart(e.Node.Parent.Text, panel);
-                charts.Add(e.Node.Parent.Text, chart);
-            }
-            chartArea = CreateChartArea(e.Node.Text, chart);
-            serie = CreateSerie(e.Node.Parent.Name, e.Node.Text, chartArea);                        
-            DrawGraphInChart(chart, chartArea, serie);
         }
         //проверка - выбран ли хоть 1 из методов скважины в дереве
         //private void checkCheckboxNodes(TreeNode ParentNode)
@@ -180,7 +190,7 @@ namespace well
 
         //private void wellsTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
         //{
-            
+
         //    //e.Node.Tag = e.Node.Checked;
         //    //    if (!e.Node.Checked)
         //    //    {
