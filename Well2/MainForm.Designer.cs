@@ -316,6 +316,7 @@
             this.splitContainer1.Size = new System.Drawing.Size(800, 426);
             this.splitContainer1.SplitterDistance = 227;
             this.splitContainer1.TabIndex = 1;
+            this.splitContainer1.MouseEnter += new System.EventHandler(this.splitContainer1_MouseEnter);
             // 
             // wellsTree
             // 
@@ -329,6 +330,7 @@
             this.wellsTree.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.wellsTree_NodeMouseClick);
             this.wellsTree.DragDrop += new System.Windows.Forms.DragEventHandler(this.wellsTree_DragDrop);
             this.wellsTree.DragEnter += new System.Windows.Forms.DragEventHandler(this.wellsTree_DragEnter);
+
             // 
             // openFileDialog1
             // 
@@ -344,6 +346,8 @@
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
             this.Text = "Form1";
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyDown);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyUp);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.splitContainer1.Panel1.ResumeLayout(false);

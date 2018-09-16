@@ -19,7 +19,7 @@ namespace well
         private void DrawTree(Well well)
         {
             wellsTree.Nodes.Add(well.WellName);
-            wellsTree.Nodes[0].Name = well.WellPath;
+            wellsTree.Nodes[wellsTree.Nodes.Count-1].Name = well.WellPath;
             //добавление методов в скважину (в дереве)
             foreach (string method in well.WellMethods())
             {
@@ -36,6 +36,7 @@ namespace well
         public MainForm()
         {
             InitializeComponent();
+
             WellsArea wellsArea = new WellsArea();
             controller = new Controller(wellsArea);
             panel.Parent = splitContainer1.Panel2;
@@ -276,15 +277,10 @@ namespace well
         //}
 
         private void wellsTree_DragEnter(object sender, DragEventArgs e)
-        {
-            //if (e.Data.GetDataPresent(DataFormats.FileDrop))                                          
-            //    e.Effect = DragDropEffects.Copy;
-            //else
-            //    e.Effect = DragDropEffects.None;            
+        {            
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                // loop through the string array, validating each filename
                 bool allow = true;
                 foreach (string file in files)
                 {                                        
@@ -309,6 +305,43 @@ namespace well
                 }
             }
         }
-    }
 
+        bool pressControl = false;
+        private void MainForm_KeyDown(object sender, KeyEventArgs e)
+        {            
+            if (e.KeyCode == Keys.Control)
+            {
+                pressControl = true;
+            }
+        }
+
+        private void MainForm_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Control)
+            {
+                pressControl = false;
+            }
+        }
+
+        private void splitContainer1_MouseEnter(object sender, EventArgs e)
+        {
+            MessageBox.Show("mouse here");
+            Scalling();
+        }
+
+        private void Scalling()
+        {            
+            this.MouseWheel += delegate (object s, System.Windows.Forms.MouseEventArgs ee)
+            {                
+                if (ee.Delta > 0)
+                {
+                    MessageBox.Show("UP");
+                }
+                else
+                {
+                    MessageBox.Show("DOWN");
+                }
+            };
+        }
+    }
 }
