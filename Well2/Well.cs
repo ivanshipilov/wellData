@@ -16,18 +16,22 @@ namespace well
         public static int count = 0;
         private string wellName;
         private string wellPath;
+        private decimal wellDepth;
         public string WellName { get { return wellName; } }
-        public string WellPath { get { return wellPath; } }        
+        public string WellPath { get { return wellPath; } }
+        public decimal WellDepth { get { return wellDepth; } }
         List<string> methodsList = new List<string>();
         Dictionary<string, List<decimal>> dataDict = new Dictionary<string, List<decimal>>();
+        
 
         //constructor
         public Well(string wellName, string wellPath)
-        {
+        {            
             this.wellName = wellName;
-            this.wellPath = wellPath;
+            this.wellPath = wellPath;            
             GetWellMethodsFromFile(wellPath);
             GetWellDataFromFile(wellPath);
+            EstimateWellDepth();
             Well.count++;
         }       
 
@@ -178,5 +182,12 @@ namespace well
         {
             return this.dataDict;
         }//убрал получение аргумента string wellPath
+
+        //estimate wellDepth
+        private void EstimateWellDepth()
+        {
+            string depthDataKey = dataDict.First().Key;
+            this.wellDepth = dataDict[depthDataKey].Last();
+        }
     }
 }

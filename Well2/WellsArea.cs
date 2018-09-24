@@ -10,6 +10,8 @@ namespace Well2
     class WellsArea
     {
         Dictionary<string, Well> DictWells = new Dictionary<string, Well>();
+        private decimal scale = 10;
+
         public WellsArea()
         {
 
@@ -42,5 +44,10 @@ namespace Well2
             }
             return null;
         }
+        public decimal Scale                    
+        {
+            get { return scale; }
+            set { scale = value; }
+        }        
     }
 }

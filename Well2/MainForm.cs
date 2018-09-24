@@ -1,4 +1,6 @@
-﻿//ошибка при работе с несколькими скважинами
+﻿//свойство panel scale
+//перемещение при удалении метода скважины
+//масштабирование
 //ошибка дерева
 //str 81 никак не получается сделать подпись над графиком(
 //str 107 - фильтрация
@@ -31,15 +33,18 @@ namespace well
         public const string extension = ".las";
         TableLayoutPanel panel = new TableLayoutPanel();
         Controller controller = null;
+        WellsArea wellsArea = null;
         Dictionary <string, Chart> charts = new Dictionary <string, Chart>();
 
         public MainForm()
         {
             InitializeComponent();
-
-            WellsArea wellsArea = new WellsArea();
+            this.MouseWheel += Scale;
+            wellsArea = new WellsArea();            
             controller = new Controller(wellsArea);
             panel.Parent = splitContainer1.Panel2;
+            //panel.Height = splitContainer1.Panel2.Height;
+            //panel.Width = splitContainer1.Panel2.Width;
             panel.Dock = DockStyle.Fill;
             panel.AutoScroll = true;
         }
@@ -81,23 +86,24 @@ namespace well
             addMethodToScreen(strWell, strWellname, strMethod);
         }
 
-        private void addMethodToScreen (string strWell, string strWellName, string strMethod)
+        private void addMethodToScreen (string wellName, string wellPath, string strMethod)
         {
             Chart chart = null;
             ChartArea chartArea = null;
             Series serie = null;
-            if (charts.ContainsKey(strWell))
+            if (charts.ContainsKey(wellName))
             {
-                chart = charts[strWell];
+                chart = charts[wellName];
             }
             else
             {
-                chart = CreateChart(strWell, panel);
-                charts.Add(strWell, chart);
+                chart = CreateChart(wellName, panel);
+                charts.Add(wellName, chart);
             }
             chartArea = CreateChartArea(strMethod, chart);
-            serie = CreateSerie(strWellName, strMethod, chartArea);
+            serie = CreateSerie(wellPath, strMethod, chartArea);
             DrawGraphInChart(chart, chartArea, serie);
+            ScaleSet(wellPath, chart);
         }
 
         private Chart CreateChart(string wellName, TableLayoutPanel panel)
@@ -105,9 +111,9 @@ namespace well
             int colCount = panel.ColumnCount - 1;
             Chart chartNew = new Chart();
             chartNew.Name = wellName;
-            chartNew.Dock = DockStyle.Fill;
+            //chartNew.Dock = DockStyle.Fill;
             panel.Controls.Add(chartNew, colCount, 0);
-            panel.ColumnCount += 1;
+            panel.ColumnCount += 1;            
             return chartNew;
         }
         private ChartArea CreateChartArea(string wellMethod, Chart chart)
@@ -119,7 +125,7 @@ namespace well
                 chartArea.Position.X = chart.ChartAreas.Last().Position.Right;
             }
 
-            chartArea.Position.Width = 20;
+            chartArea.Position.Width = 30;
             chartArea.Position.Height = 100;
 
             chartArea.AxisY.Title = wellMethod;
@@ -142,7 +148,7 @@ namespace well
                 decimal y = methodData[i]; decimal x = depthValue;
                 serie.Points.AddXY(x, y);
                 i += 1;
-            }
+            }         
             //фильтрация - fix! вынести в отдельный метод, значение передавать пока как параметр, в дальнейшем сделать для пользователя поле для ввода неактуального значения
             //еще далее добавить аналогичную фильтрацию для значений >x <x
             DataManipulator filter = new DataManipulator();
@@ -163,73 +169,16 @@ namespace well
             serie.ChartType = SeriesChartType.Line;
             serie.XAxisType = AxisType.Secondary;
             serie.ChartArea = chartArea.Name;
-            chart.Series.Add(serie);
+            chart.Series.Add(serie);            
         }
-        //проверка - выбран ли хоть 1 из методов скважины в дереве
-        //private void checkCheckboxNodes(TreeNode ParentNode)
-        //{
-        //    int checkedNodes = 0;
-        //    for (int i = 0; i < ParentNode.Nodes.Count; i++)
-        //    {                
-        //        if (ParentNode.Nodes[i].Checked == true)
-        //        {                   
-        //            checkedNodes++;
-        //        }
-        //    }
-        //    if (checkedNodes == 0)
-        //        ParentNode.Checked = false;
-        //    else
-        //        ParentNode.Checked = true;
-        //}
-        //private void SelectTreeNode(TreeNode node)
-        //{
-        //    if (node.Level == 1)
-        //    {
-        //        checkCheckboxNodes(node.Parent);
-        //    }
-        //}
+        //масштабирование 
+        private void ScaleSet(string wellPath, Chart chart)
+        {
+            Well well = controller.GetWell(wellPath);
+            decimal wellDepth = well.WellDepth;
+            chart.Height = (int)(wellDepth / wellsArea.Scale);
+        }
 
-        //private void wellsTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
-        //{
-
-        //    //e.Node.Tag = e.Node.Checked;
-        //    //    if (!e.Node.Checked)
-        //    //    {
-        //    //        e.Node.Checked = true;                
-        //    //    }            
-        //    //    else
-        //    //    {
-        //    //        e.Node.Checked = false;
-        //    //    }
-        //    //    SelectTreeNode(e.Node);
-        //}
-
-        //private bool check = false;
-        //private void wellsTree_AfterCheck(object sender, TreeViewEventArgs e)
-        //{  
-        //    if (check == true)
-        //    {
-        //        return;
-        //    }
-        //    check = true;
-        //    SelectParents(e.Node, e.Node.Checked);
-        //    check = false;
-        //    //if (e.Node.Tag != null)
-        //    //{
-        //    //    e.Node.Checked = (bool)e.Node.Tag;
-        //    //    e.Node.Tag = null;
-        //    //}
-        //    //MessageBox.Show(e.Node.Checked + "включен");
-        //    //if (!e.Node.Checked)
-        //    //{
-        //    //    e.Node.Checked = true;
-        //    //}
-        //    //else
-        //    //{
-        //    //    e.Node.Checked = false;
-        //    //}
-        //    //SelectTreeNode(e.Node);
-        //}
         private void SelectParents(TreeNode node, Boolean isChecked)
         {
             var parent = node.Parent;
@@ -250,31 +199,6 @@ namespace well
                 SelectParents(parent, false); // otherwise uncheck parent
             }
         }
-
-
-        //private void wellsTree_BeforeCheck(object sender, TreeViewCancelEventArgs e)
-        //{
-        //    //MessageBox.Show(e.Node.Checked + "включен");
-        //    //if (!e.Node.Checked)
-        //    //{
-        //    //    e.Node.Checked = true;
-        //    //}
-        //    //else
-        //    //{
-        //    //    e.Node.Checked = false;
-        //    //}
-        //    //SelectTreeNode(e.Node);
-        //}
-
-        //private void wellsTree_DoubleClick(object sender, EventArgs e)
-        //{
-        //    int a = 0;
-        //}
-
-        //private void wellsTree_MouseDoubleClick(object sender, MouseEventArgs e)
-        //{
-        //    int a = 0;
-        //}
 
         private void wellsTree_DragEnter(object sender, DragEventArgs e)
         {            
@@ -305,43 +229,15 @@ namespace well
                 }
             }
         }
-
-        bool pressControl = false;
-        private void MainForm_KeyDown(object sender, KeyEventArgs e)
-        {            
-            if (e.KeyCode == Keys.Control)
-            {
-                pressControl = true;
-            }
-        }
-
-        private void MainForm_KeyUp(object sender, KeyEventArgs e)
+        private void Scale (object sender, MouseEventArgs e)
         {
-            if (e.KeyCode == Keys.Control)
+            if (Control.ModifierKeys == Keys.Shift)
             {
-                pressControl = false;
-            }
-        }
-
-        private void splitContainer1_MouseEnter(object sender, EventArgs e)
-        {
-            MessageBox.Show("mouse here");
-            Scalling();
-        }
-
-        private void Scalling()
-        {            
-            this.MouseWheel += delegate (object s, System.Windows.Forms.MouseEventArgs ee)
-            {                
-                if (ee.Delta > 0)
-                {
-                    MessageBox.Show("UP");
-                }
+                if (e.Delta > 0) 
+                  panel.Scale(new SizeF(1, ((float)1.2)));                   
                 else
-                {
-                    MessageBox.Show("DOWN");
-                }
-            };
-        }
+                    panel.Scale(new SizeF(1, ((float)0.8)));
+            }                     
+        }        
     }
 }

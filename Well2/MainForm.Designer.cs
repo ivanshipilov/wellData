@@ -307,22 +307,27 @@
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splitContainer1.Location = new System.Drawing.Point(0, 24);
             this.splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
             // 
             this.splitContainer1.Panel1.Controls.Add(this.wellsTree);
+            // 
+            // splitContainer1.Panel2
+            // 
+            this.splitContainer1.Panel2.AutoScroll = true;
             this.splitContainer1.Size = new System.Drawing.Size(800, 426);
             this.splitContainer1.SplitterDistance = 227;
             this.splitContainer1.TabIndex = 1;
-            this.splitContainer1.MouseEnter += new System.EventHandler(this.splitContainer1_MouseEnter);
             // 
             // wellsTree
             // 
             this.wellsTree.AllowDrop = true;
             this.wellsTree.CheckBoxes = true;
             this.wellsTree.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.wellsTree.HotTracking = true;
             this.wellsTree.Location = new System.Drawing.Point(0, 0);
             this.wellsTree.Name = "wellsTree";
             this.wellsTree.Size = new System.Drawing.Size(227, 426);
@@ -330,7 +335,6 @@
             this.wellsTree.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.wellsTree_NodeMouseClick);
             this.wellsTree.DragDrop += new System.Windows.Forms.DragEventHandler(this.wellsTree_DragDrop);
             this.wellsTree.DragEnter += new System.Windows.Forms.DragEventHandler(this.wellsTree_DragEnter);
-
             // 
             // openFileDialog1
             // 
@@ -346,8 +350,6 @@
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
             this.Text = "Form1";
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyDown);
-            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyUp);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.splitContainer1.Panel1.ResumeLayout(false);
