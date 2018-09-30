@@ -10,7 +10,7 @@ namespace Well2
     class WellsArea
     {
         Dictionary<string, Well> DictWells = new Dictionary<string, Well>();
-        private decimal scale = 10;
+        private decimal scale = 20;
 
         public WellsArea()
         {

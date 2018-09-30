@@ -17,9 +17,13 @@ namespace well
         private string wellName;
         private string wellPath;
         private decimal wellDepth;
+        private decimal dataStep;
+        private double nonActualValue;
         public string WellName { get { return wellName; } }
         public string WellPath { get { return wellPath; } }
         public decimal WellDepth { get { return wellDepth; } }
+        public decimal DataStep { get { return dataStep; } }
+        public double NonActualValue { get { return nonActualValue; } }
         List<string> methodsList = new List<string>();
         Dictionary<string, List<decimal>> dataDict = new Dictionary<string, List<decimal>>();
         
@@ -31,7 +35,9 @@ namespace well
             this.wellPath = wellPath;            
             GetWellMethodsFromFile(wellPath);
             GetWellDataFromFile(wellPath);
+            GetNonActualValue();
             EstimateWellDepth();
+            EstimateDataStep();
             Well.count++;
         }       
 
@@ -44,26 +50,25 @@ namespace well
             int methodsCount = 0;
             string line;
             string curve = "~C";
-            string param = "~P";
+            string tilda = "~";            
             string hash = "#";
             bool curveFinded = false;
             //List<string> methods = new List<string>();
             while ((line = reader.ReadLine()) != null)
             {
                 counter++;
-                if (line.StartsWith(curve))
+                if (line.Replace(" ", string.Empty).StartsWith(curve))
                 {
                     curveFinded = true;
-                    numLine = counter;
                     continue;
                 }
-                if (curveFinded && line.StartsWith(hash) && ((counter - numLine) == 1))
+                if (curveFinded && line.Replace(" ", string.Empty).StartsWith(hash))
                 {
-                    numLine++; continue;
+                    continue;
                 }
                 else
                 {
-                    if (curveFinded && !line.StartsWith(param))
+                    if (curveFinded && !line.Replace(" ", string.Empty).StartsWith(tilda))
                     {
                         string[] word = line.Split(new string[] { "  " }, StringSplitOptions.RemoveEmptyEntries);
                         this.methodsList.Add(word[methodsCount]);
@@ -71,7 +76,7 @@ namespace well
                     }
                     else
                     {
-                        if (line.StartsWith(param))
+                        if (curveFinded && line.Replace(" ", string.Empty).StartsWith(tilda))
                         {
                             break;
                         }
@@ -126,13 +131,13 @@ namespace well
                 while ((line = reader.ReadLine()) != null)
                 {
                     counter++;
-                    if (line.StartsWith(ascii))
+                    if (line.Replace(" ", string.Empty).StartsWith(ascii))
                     {
                         asciiFinded = true;
                         numLine = counter;
                         continue;
                     }
-                    if (asciiFinded && line.StartsWith(hash) && ((counter - numLine) == 1))
+                    if (asciiFinded && line.Replace(" ", string.Empty).StartsWith(hash) && ((counter - numLine) == 1))
                     {
                         numLine++;
                         continue;
@@ -188,6 +193,34 @@ namespace well
         {
             string depthDataKey = dataDict.First().Key;
             this.wellDepth = dataDict[depthDataKey].Last();
+        }
+        
+        //estimate data step
+        private void EstimateDataStep()
+        {
+            string depthDataKey = dataDict.First().Key;
+            this.dataStep = dataDict[depthDataKey][1]- dataDict[depthDataKey][0];
+        }
+
+        //get nonActualValue
+        private void GetNonActualValue()
+        {
+            string naValue = "null";
+            string line;
+
+            using (StreamReader reader = new StreamReader(wellPath))
+            {
+                while ((line = reader.ReadLine()) != null)
+                {
+                    var t = Regex.Match(line.ToLower(), @"null\s*.\s*(-*[0-9]+.[0-9]+)\s*:");
+
+                    if (t.Length>0)
+                    {
+
+                        double.TryParse(t.Groups[1].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out nonActualValue);
+                    }
+                }
+            }
         }
     }
 }

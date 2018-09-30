@@ -1,4 +1,5 @@
-﻿//свойство panel scale
+﻿//30.09 исправил парсинг
+//свойство panel scale
 //перемещение при удалении метода скважины
 //масштабирование
 //ошибка дерева
@@ -97,23 +98,28 @@ namespace well
             }
             else
             {
-                chart = CreateChart(wellName, panel);
+                chart = CreateChart(wellName, wellPath, panel);
                 charts.Add(wellName, chart);
             }
             chartArea = CreateChartArea(strMethod, chart);
             serie = CreateSerie(wellPath, strMethod, chartArea);
             DrawGraphInChart(chart, chartArea, serie);
+            chartArea.AxisX2.LabelStyle.Enabled = false;
             ScaleSet(wellPath, chart);
         }
 
-        private Chart CreateChart(string wellName, TableLayoutPanel panel)
+        private Chart CreateChart(string wellName, string wellPath, TableLayoutPanel panel)
         {
+            Well well = controller.GetWell(wellPath);
+            decimal step = well.DataStep;
+            decimal depth = well.WellDepth;
             int colCount = panel.ColumnCount - 1;
             Chart chartNew = new Chart();
             chartNew.Name = wellName;
-            //chartNew.Dock = DockStyle.Fill;
             panel.Controls.Add(chartNew, colCount, 0);
-            panel.ColumnCount += 1;            
+            panel.ColumnCount += 1;
+            chartNew.Height = (int)(step* depth);
+            chartNew.Width = 80;
             return chartNew;
         }
         private ChartArea CreateChartArea(string wellMethod, Chart chart)
@@ -125,10 +131,10 @@ namespace well
                 chartArea.Position.X = chart.ChartAreas.Last().Position.Right;
             }
 
-            chartArea.Position.Width = 30;
+            chartArea.Position.Width = 100;
             chartArea.Position.Height = 100;
 
-            chartArea.AxisY.Title = wellMethod;
+            chartArea.AxisY.Title = wellMethod;            
             chartArea.AxisY.LabelStyle.IntervalOffset = 0;
 
             chart.ChartAreas.Add(chartArea);
@@ -152,7 +158,7 @@ namespace well
             //фильтрация - fix! вынести в отдельный метод, значение передавать пока как параметр, в дальнейшем сделать для пользователя поле для ввода неактуального значения
             //еще далее добавить аналогичную фильтрацию для значений >x <x
             DataManipulator filter = new DataManipulator();
-            filter.Filter(CompareMethod.EqualTo, -999.250, serie);
+            filter.Filter(CompareMethod.EqualTo, well.NonActualValue, serie);
             Series serie1 = new Series(chartArea.Name);
             //меняются местами x и y для правильного отображения графиков
             foreach (var item in serie.Points)
@@ -167,7 +173,7 @@ namespace well
         private void DrawGraphInChart(Chart chart, ChartArea chartArea, Series serie)
         {
             serie.ChartType = SeriesChartType.Line;
-            serie.XAxisType = AxisType.Secondary;
+            serie.XAxisType = AxisType.Secondary;            
             serie.ChartArea = chartArea.Name;
             chart.Series.Add(serie);            
         }
@@ -175,8 +181,8 @@ namespace well
         private void ScaleSet(string wellPath, Chart chart)
         {
             Well well = controller.GetWell(wellPath);
-            decimal wellDepth = well.WellDepth;
-            chart.Height = (int)(wellDepth / wellsArea.Scale);
+            decimal wellDepth = well.WellDepth;                            
+                chart.Height = (int)((wellDepth/ wellsArea.Scale));
         }
 
         private void SelectParents(TreeNode node, Boolean isChecked)
@@ -236,7 +242,7 @@ namespace well
                 if (e.Delta > 0) 
                   panel.Scale(new SizeF(1, ((float)1.2)));                   
                 else
-                    panel.Scale(new SizeF(1, ((float)0.8)));
+                  panel.Scale(new SizeF(1, ((float)0.8)));
             }                     
         }        
     }
