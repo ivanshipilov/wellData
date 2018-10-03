@@ -32,7 +32,7 @@ namespace well
         }
 
         public const string extension = ".las";
-        TableLayoutPanel panel = new TableLayoutPanel();
+        TableLayoutPanel panel = new TableLayoutPanel();        
         Controller controller = null;
         WellsArea wellsArea = null;
         Dictionary <string, Chart> charts = new Dictionary <string, Chart>();
@@ -43,9 +43,8 @@ namespace well
             this.MouseWheel += Scale;
             wellsArea = new WellsArea();            
             controller = new Controller(wellsArea);
+            
             panel.Parent = splitContainer1.Panel2;
-            //panel.Height = splitContainer1.Panel2.Height;
-            //panel.Width = splitContainer1.Panel2.Width;
             panel.Dock = DockStyle.Fill;
             panel.AutoScroll = true;
         }
@@ -81,8 +80,9 @@ namespace well
                 //удаляется набор данных serie для метода и charArea
                 charts[strWell].Series.RemoveAt(charts[strWell].ChartAreas.IndexOf(strMethod));
                 charts[strWell].ChartAreas.RemoveAt(charts[strWell].ChartAreas.IndexOf(strMethod));
+                SelectParents(e.Node, e.Node.Checked);
                 return;
-            }            
+            }
             SelectParents(e.Node, e.Node.Checked);
             addMethodToScreen(strWell, strWellname, strMethod);
         }
@@ -105,21 +105,22 @@ namespace well
             serie = CreateSerie(wellPath, strMethod, chartArea);
             DrawGraphInChart(chart, chartArea, serie);
             chartArea.AxisX2.LabelStyle.Enabled = false;
+           //!!!!!!!!!!!!!!!!!!! var a = panel.GetColumn(chart);
             ScaleSet(wellPath, chart);
         }
 
         private Chart CreateChart(string wellName, string wellPath, TableLayoutPanel panel)
         {
-            Well well = controller.GetWell(wellPath);
+            Well well = controller.GetWell(wellPath);            
             decimal step = well.DataStep;
             decimal depth = well.WellDepth;
-            int colCount = panel.ColumnCount - 1;
+            
             Chart chartNew = new Chart();
             chartNew.Name = wellName;
-            panel.Controls.Add(chartNew, colCount, 0);
-            panel.ColumnCount += 1;
-            chartNew.Height = (int)(step* depth);
-            chartNew.Width = 80;
+            //тут создается колонка для скважины
+            makeColForWell(chartNew);            
+            chartNew.Height = (int)(step* depth);            
+            chartNew.Width = 600;
             return chartNew;
         }
         private ChartArea CreateChartArea(string wellMethod, Chart chart)
@@ -131,7 +132,7 @@ namespace well
                 chartArea.Position.X = chart.ChartAreas.Last().Position.Right;
             }
 
-            chartArea.Position.Width = 100;
+            chartArea.Position.Width = 20;
             chartArea.Position.Height = 100;
 
             chartArea.AxisY.Title = wellMethod;            
@@ -188,24 +189,37 @@ namespace well
         private void SelectParents(TreeNode node, Boolean isChecked)
         {
             var parent = node.Parent;
-
+            var parentOldState = parent.Checked;
             if (parent == null)
                 return;
-
             if (isChecked)
             {
                 parent.Checked = true; // we should always check parent
-                SelectParents(parent, true);
+                if (parent.Checked == parentOldState)
+                    return;
+                else
+                    wellOn();
             }
             else
             {
                 if (parent.Nodes.Cast<TreeNode>().Any(n => n.Checked))
                     return; // do not uncheck parent if there other checked nodes
-                parent.Checked = false;
-                SelectParents(parent, false); // otherwise uncheck parent
+                else parent.Checked = false;
             }
         }
-
+        //по сути тригер node.parent.changed - если скважина включена первый раз, должна создаваться колонка, хотя это сделано ниже..но для удаления возможно пригодится такой способ
+        private void wellOn()
+        {
+            
+        }
+        //создание колонки для скважины
+        private void makeColForWell(Chart chartNew)
+        {
+            int colCount = panel.ColumnCount;
+            panel.Controls.Add(chartNew, colCount, 0);
+            panel.ColumnCount += 1;
+        }
+        //drug&drope
         private void wellsTree_DragEnter(object sender, DragEventArgs e)
         {            
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -235,6 +249,7 @@ namespace well
                 }
             }
         }
+
         private void Scale (object sender, MouseEventArgs e)
         {
             if (Control.ModifierKeys == Keys.Shift)
@@ -244,6 +259,6 @@ namespace well
                 else
                   panel.Scale(new SizeF(1, ((float)0.8)));
             }                     
-        }        
+        }
     }
 }
